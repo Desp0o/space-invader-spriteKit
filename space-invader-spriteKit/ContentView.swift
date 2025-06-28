@@ -13,7 +13,7 @@ struct ContentView: View {
   let height = UIScreen.main.bounds.height
   
   var scene: SKScene {
-    let scene = MainScene()
+    let scene = GameManager.loadLevel(1)
     scene.size.width = width
     scene.size.height = height
     scene.scaleMode = .fill
@@ -65,6 +65,12 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
       scoreLabel.text = "Score: \(score)"
       bodyA.node?.removeFromParent()
       bodyB.node?.removeFromParent()
+      
+      if score == 1 {
+        let nextLevel = GameManager.loadLevel(2)
+        view?.presentScene(nextLevel, transition: .doorsCloseHorizontal(withDuration: 1))
+      }
+      
       return
     }
     
@@ -230,5 +236,19 @@ struct PhysicsCategory {
   static let enemy: UInt32 = 2
   static let bullet: UInt32 = 4
   static let ship: UInt32 = 8
+  
+}
+
+class GameManager {
+    static func loadLevel(_ number: Int) -> SKScene {
+        switch number {
+        case 1: return MainScene(size: UIScreen.main.bounds.size)
+        case 2: return MainScene2(size: UIScreen.main.bounds.size)
+        default: return MainScene(size: UIScreen.main.bounds.size)
+        }
+    }
+}
+
+final class MainScene2: BaseLevelScene {
   
 }
