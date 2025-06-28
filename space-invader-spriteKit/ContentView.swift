@@ -36,10 +36,12 @@ final class MainScene: SKScene {
   let spaceShip = SKSpriteNode(imageNamed: "spaceShip")
   
   override func didMove(to view: SKView) {
-    self.physicsWorld.gravity = CGVector(dx: 0, dy: 0)
-    
     setupBG()
     setupSpaceShip()
+  }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    setupRedBullet()
   }
   
   override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -61,7 +63,7 @@ final class MainScene: SKScene {
   func setupSpaceShip() {
     spaceShip.name = "spaceShip"
     spaceShip.position = CGPoint(x: size.width / 2, y: 60)
-    spaceShip.size = CGSize(width: 70, height: 70)
+    spaceShip.size = CGSize(width: 60, height: 60)
     spaceShip.physicsBody = SKPhysicsBody(rectangleOf: spaceShip.frame.size)
     spaceShip.physicsBody?.isDynamic = true
     spaceShip.physicsBody?.affectedByGravity = false
@@ -75,6 +77,25 @@ final class MainScene: SKScene {
     let maxX = size.width - halfWidth - 10
     let clampedX = min(max(location.x, minX), maxX)
     
-    spaceShip.position = CGPoint(x: clampedX, y: spaceShip.position.y)
+    let move = SKAction.move(to: CGPoint(x: clampedX, y: spaceShip.position.y), duration: 0.2)
+    
+    spaceShip.run(move)
+  }
+  
+  func setupRedBullet() {
+    let redBullet = SKSpriteNode(imageNamed: "laserRed01")
+    redBullet.position = CGPoint(x: spaceShip.position.x, y: spaceShip.position.y + 60)
+    redBullet.physicsBody = SKPhysicsBody(rectangleOf: redBullet.frame.size)
+    redBullet.physicsBody?.isDynamic = true
+    redBullet.physicsBody?.affectedByGravity = false
+    
+    let move = SKAction.move(by: CGVector(dx: 0, dy: 800), duration: 1)
+    let remove = SKAction.removeFromParent()
+    
+    let sequence = SKAction.sequence([move, remove])
+    
+    redBullet.run(sequence)
+    
+    addChild(redBullet)
   }
 }
