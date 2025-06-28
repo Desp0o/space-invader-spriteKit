@@ -32,10 +32,12 @@ struct ContentView: View {
 }
 
 
-final class MainScene: SKScene {
+final class MainScene: SKScene, SKPhysicsContactDelegate {
   let spaceShip = SKSpriteNode(imageNamed: "spaceShip")
   
   override func didMove(to view: SKView) {
+    self.physicsWorld.contactDelegate = self
+    
     setupBG()
     setupSpaceShip()
     spawnMeteors()
@@ -52,6 +54,34 @@ final class MainScene: SKScene {
     updateShipPosition(location: location)
   }
   
+  func didBegin(_ contact: SKPhysicsContact) {
+    let bodyA = contact.bodyA
+    let bodyB = contact.bodyB
+    
+    let isBulletMeteor =
+    (bodyA.categoryBitMask == PhysicsCategory.bullet && bodyB.categoryBitMask == PhysicsCategory.meteor) ||
+    (bodyA.categoryBitMask == PhysicsCategory.meteor && bodyB.categoryBitMask == PhysicsCategory.bullet)
+    
+    if isBulletMeteor {
+      bodyA.node?.removeFromParent()
+      bodyB.node?.removeFromParent()
+      return
+    }
+    
+    let isShipMeteor =
+    (bodyA.categoryBitMask == PhysicsCategory.ship && bodyB.categoryBitMask == PhysicsCategory.meteor) ||
+    (bodyA.categoryBitMask == PhysicsCategory.meteor && bodyB.categoryBitMask == PhysicsCategory.ship)
+    
+    if isShipMeteor {
+      let location = bodyA.categoryBitMask == PhysicsCategory.ship ? bodyA.node?.position : bodyB.node?.position
+      bodyA.node?.removeFromParent()
+      bodyB.node?.removeFromParent()
+      guard let location else { return }
+      destroyedShip(location: location)
+      return
+    }
+  }
+  
   func setupBG() {
     let background = SKSpriteNode(imageNamed: "mainBackground")
     background.size = CGSize(width: size.width, height: size.height)
@@ -65,9 +95,16 @@ final class MainScene: SKScene {
     spaceShip.name = "spaceShip"
     spaceShip.position = CGPoint(x: size.width / 2, y: 60)
     spaceShip.size = CGSize(width: 60, height: 60)
-    spaceShip.physicsBody = SKPhysicsBody(rectangleOf: spaceShip.frame.size)
+    if let texture = spaceShip.texture {
+        spaceShip.physicsBody = SKPhysicsBody(texture: texture, size: spaceShip.frame.size)
+    } else {
+        spaceShip.physicsBody = SKPhysicsBody(rectangleOf: spaceShip.frame.size)
+    }
     spaceShip.physicsBody?.isDynamic = true
     spaceShip.physicsBody?.affectedByGravity = false
+    spaceShip.physicsBody?.usesPreciseCollisionDetection = true
+    spaceShip.physicsBody?.categoryBitMask = PhysicsCategory.ship
+    spaceShip.physicsBody?.contactTestBitMask = PhysicsCategory.meteor
     
     addChild(spaceShip)
   }
@@ -83,12 +120,26 @@ final class MainScene: SKScene {
     spaceShip.run(move)
   }
   
+  func destroyedShip(location: CGPoint) {
+    let destroyedShip = SKSpriteNode(imageNamed: "damagedShip")
+    destroyedShip.position = location
+    
+    let move = SKAction.move(by: CGVector(dx: 0, dy: -200), duration: 2)
+    destroyedShip.run(move)
+    
+    addChild(destroyedShip)
+  }
+  
   func setupRedBullet() {
     let redBullet = SKSpriteNode(imageNamed: "laserRed01")
     redBullet.position = CGPoint(x: spaceShip.position.x, y: spaceShip.position.y + 60)
     redBullet.physicsBody = SKPhysicsBody(rectangleOf: redBullet.frame.size)
     redBullet.physicsBody?.isDynamic = true
     redBullet.physicsBody?.affectedByGravity = false
+    
+    redBullet.physicsBody?.usesPreciseCollisionDetection = true
+    redBullet.physicsBody?.categoryBitMask = PhysicsCategory.bullet
+    redBullet.physicsBody?.contactTestBitMask = PhysicsCategory.enemy | PhysicsCategory.meteor
     
     let move = SKAction.move(by: CGVector(dx: 0, dy: 800), duration: 1)
     let remove = SKAction.removeFromParent()
@@ -128,7 +179,11 @@ final class MainScene: SKScene {
     meteor.physicsBody?.isDynamic = true
     meteor.physicsBody?.affectedByGravity = false
     
-    let move = SKAction.move(by: CGVector(dx: 0, dy: -800), duration: 2)
+    meteor.physicsBody?.usesPreciseCollisionDetection = true
+    meteor.physicsBody?.categoryBitMask = PhysicsCategory.meteor
+    meteor.physicsBody?.contactTestBitMask = PhysicsCategory.bullet | PhysicsCategory.ship
+    
+    let move = SKAction.move(by: CGVector(dx: 0, dy: -800), duration: 3)
     let remove = SKAction.removeFromParent()
     let sequence = SKAction.sequence([move, remove])
     
@@ -147,4 +202,12 @@ final class MainScene: SKScene {
     
     run(repeatForever, withKey: "meteorSpawn")
   }
+}
+
+struct PhysicsCategory {
+  static let meteor: UInt32 = 1
+  static let enemy: UInt32 = 2
+  static let bullet: UInt32 = 4
+  static let ship: UInt32 = 8
+  
 }
