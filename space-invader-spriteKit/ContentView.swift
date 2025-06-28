@@ -31,47 +31,25 @@ struct ContentView: View {
   ContentView()
 }
 
-class BaseLevelScene: SKScene {
-    let scoreLabel = SKLabelNode()
-    var score = 0
-    
-    override func didMove(to view: SKView) {
-        setupHUD()
-    }
-
-    func setupHUD() {
-      scoreLabel.text = "Score: \(score)"
-      scoreLabel.fontColor = .yellow
-      scoreLabel.fontSize = 16
-      scoreLabel.position = CGPoint(x: size.width - 50, y: size.height - 60)
-      
-      addChild(scoreLabel)
-    }
-}
-
-
-final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
+class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   let spaceShip = SKSpriteNode(imageNamed: "spaceShip")
   
+  let scoreLabel = SKLabelNode()
+  var score = 0
+  
   override func didMove(to view: SKView) {
-    super.didMove(to: view)
-    
     self.physicsWorld.contactDelegate = self
     
-    setupBG()
-    setupSpaceShip()
-    spawnMeteors()
+    setupHUD()
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    setupRedBullet()
-  }
-  
-  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first else { return }
     let location = touch.location(in: self)
     
     updateShipPosition(location: location)
+    
+    setupRedBullet()
   }
   
   func didBegin(_ contact: SKPhysicsContact) {
@@ -104,6 +82,16 @@ final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
     }
   }
   
+  func setupHUD() {
+    scoreLabel.text = "Score: \(score)"
+    scoreLabel.fontColor = .yellow
+    scoreLabel.fontSize = 16
+    scoreLabel.fontName = "Helvetica-bold"
+    scoreLabel.position = CGPoint(x: size.width - 50, y: size.height - 60)
+    
+    addChild(scoreLabel)
+  }
+  
   func setupBG() {
     let background = SKSpriteNode(imageNamed: "mainBackground")
     background.size = CGSize(width: size.width, height: size.height)
@@ -118,9 +106,9 @@ final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
     spaceShip.position = CGPoint(x: size.width / 2, y: 60)
     spaceShip.size = CGSize(width: 60, height: 60)
     if let texture = spaceShip.texture {
-        spaceShip.physicsBody = SKPhysicsBody(texture: texture, size: spaceShip.frame.size)
+      spaceShip.physicsBody = SKPhysicsBody(texture: texture, size: spaceShip.frame.size)
     } else {
-        spaceShip.physicsBody = SKPhysicsBody(rectangleOf: spaceShip.frame.size)
+      spaceShip.physicsBody = SKPhysicsBody(rectangleOf: spaceShip.frame.size)
     }
     spaceShip.physicsBody?.isDynamic = true
     spaceShip.physicsBody?.affectedByGravity = false
@@ -137,7 +125,7 @@ final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
     let maxX = size.width - halfWidth - 10
     let clampedX = min(max(location.x, minX), maxX)
     
-    let move = SKAction.move(to: CGPoint(x: clampedX, y: spaceShip.position.y), duration: 0.2)
+    let move = SKAction.move(to: CGPoint(x: clampedX, y: spaceShip.position.y), duration: 0.3)
     
     spaceShip.run(move)
   }
@@ -218,11 +206,22 @@ final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
       self?.generateMeteors()
     }
     
-    let wait = SKAction.wait(forDuration: 2)
+    let wait = SKAction.wait(forDuration: 3)
     let sequence = SKAction.sequence([spawn, wait])
     let repeatForever = SKAction.repeatForever(sequence)
     
     run(repeatForever, withKey: "meteorSpawn")
+  }
+}
+
+final class MainScene: BaseLevelScene {
+  
+  override func didMove(to view: SKView) {
+    super.didMove(to: view)
+
+    setupBG()
+    setupSpaceShip()
+    spawnMeteors()
   }
 }
 
