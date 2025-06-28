@@ -38,6 +38,7 @@ final class MainScene: SKScene {
   override func didMove(to view: SKView) {
     setupBG()
     setupSpaceShip()
+    spawnMeteors()
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -97,5 +98,54 @@ final class MainScene: SKScene {
     redBullet.run(sequence)
     
     addChild(redBullet)
+  }
+  
+  func generateMeteors() {
+    let meteorsArray: [String] = [
+      "meteorBrown_big1",
+      "meteorBrown_big2",
+      "meteorBrown_small1",
+      "meteorBrown_small2",
+      "meteorBrown_tiny1",
+      "meteorGrey_big1",
+      "meteorGrey_big2",
+      "meteorGrey_med2",
+      "meteorGrey_tiny1",
+      "meteorGrey_small1"
+    ]
+    
+    guard let randomMeteor = meteorsArray.randomElement() else { return }
+    print(randomMeteor)
+    
+    let meteor = SKSpriteNode(imageNamed: randomMeteor)
+    
+    let halfWidth = meteor.size.width / 2
+    let minX = halfWidth + 10
+    let maxX = size.width - halfWidth - 10
+    let randomX = CGFloat.random(in: minX...maxX)
+    
+    meteor.position = CGPoint(x: randomX, y: size.height)
+    meteor.physicsBody = SKPhysicsBody(rectangleOf: meteor.frame.size)
+    meteor.physicsBody?.isDynamic = true
+    meteor.physicsBody?.affectedByGravity = false
+    
+    let move = SKAction.move(by: CGVector(dx: 0, dy: -800), duration: 2)
+    let remove = SKAction.removeFromParent()
+    let sequence = SKAction.sequence([move, remove])
+    
+    meteor.run(sequence)
+    addChild(meteor)
+  }
+  
+  func spawnMeteors() {
+    let spawn = SKAction.run { [weak self] in
+      self?.generateMeteors()
+    }
+    
+    let wait = SKAction.wait(forDuration: 2)
+    let sequence = SKAction.sequence([spawn, wait])
+    let repeatForever = SKAction.repeatForever(sequence)
+    
+    run(repeatForever, withKey: "meteorSpawn")
   }
 }
