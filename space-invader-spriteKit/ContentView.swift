@@ -73,8 +73,11 @@ final class MainScene: SKScene, SKPhysicsContactDelegate {
     (bodyA.categoryBitMask == PhysicsCategory.meteor && bodyB.categoryBitMask == PhysicsCategory.ship)
     
     if isShipMeteor {
+      let location = bodyA.categoryBitMask == PhysicsCategory.ship ? bodyA.node?.position : bodyB.node?.position
       bodyA.node?.removeFromParent()
       bodyB.node?.removeFromParent()
+      guard let location else { return }
+      destroyedShip(location: location)
       return
     }
   }
@@ -115,6 +118,16 @@ final class MainScene: SKScene, SKPhysicsContactDelegate {
     let move = SKAction.move(to: CGPoint(x: clampedX, y: spaceShip.position.y), duration: 0.2)
     
     spaceShip.run(move)
+  }
+  
+  func destroyedShip(location: CGPoint) {
+    let destroyedShip = SKSpriteNode(imageNamed: "damagedShip")
+    destroyedShip.position = location
+    
+    let move = SKAction.move(by: CGVector(dx: 0, dy: -200), duration: 2)
+    destroyedShip.run(move)
+    
+    addChild(destroyedShip)
   }
   
   func setupRedBullet() {
