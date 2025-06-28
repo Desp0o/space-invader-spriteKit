@@ -115,7 +115,6 @@ final class MainScene: SKScene {
     ]
     
     guard let randomMeteor = meteorsArray.randomElement() else { return }
-    print(randomMeteor)
     
     let meteor = SKSpriteNode(imageNamed: randomMeteor)
     
