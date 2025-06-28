@@ -6,19 +6,34 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, Gamer!")
-        }
-        .padding()
-    }
+  let scene: SKScene = MainScene()
+  
+  var body: some View {
+    SpriteView(scene: scene)
+      .ignoresSafeArea()
+  }
 }
 
 #Preview {
-    ContentView()
+  ContentView()
+}
+
+
+final class MainScene: SKScene {
+  override func didMove(to view: SKView) {
+    self.scaleMode = .fill
+    setupBG()
+  }
+  
+  func setupBG() {
+    let background = SKSpriteNode(imageNamed: "mainBackground")
+    background.size = CGSize(width: size.width, height: size.height)
+    background.position = CGPoint(x: size.width / 2, y: size.height / 2)
+    background.zPosition = -1
+    
+    addChild(background)
+  }
 }
