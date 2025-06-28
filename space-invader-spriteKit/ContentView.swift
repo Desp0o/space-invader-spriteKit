@@ -31,11 +31,31 @@ struct ContentView: View {
   ContentView()
 }
 
+class BaseLevelScene: SKScene {
+    let scoreLabel = SKLabelNode()
+    var score = 0
+    
+    override func didMove(to view: SKView) {
+        setupHUD()
+    }
 
-final class MainScene: SKScene, SKPhysicsContactDelegate {
+    func setupHUD() {
+      scoreLabel.text = "Score: \(score)"
+      scoreLabel.fontColor = .yellow
+      scoreLabel.fontSize = 16
+      scoreLabel.position = CGPoint(x: size.width - 50, y: size.height - 60)
+      
+      addChild(scoreLabel)
+    }
+}
+
+
+final class MainScene: BaseLevelScene, SKPhysicsContactDelegate {
   let spaceShip = SKSpriteNode(imageNamed: "spaceShip")
   
   override func didMove(to view: SKView) {
+    super.didMove(to: view)
+    
     self.physicsWorld.contactDelegate = self
     
     setupBG()
@@ -63,6 +83,8 @@ final class MainScene: SKScene, SKPhysicsContactDelegate {
     (bodyA.categoryBitMask == PhysicsCategory.meteor && bodyB.categoryBitMask == PhysicsCategory.bullet)
     
     if isBulletMeteor {
+      score += 1
+      scoreLabel.text = "Score: \(score)"
       bodyA.node?.removeFromParent()
       bodyB.node?.removeFromParent()
       return
