@@ -63,6 +63,7 @@ final class MainScene2: BaseLevelScene {
       
       if bossHealth <= 0 {
         boss.removeFromParent()
+        winner()
       }
     }
     

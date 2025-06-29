@@ -165,7 +165,7 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
       self?.generateMeteors()
     }
     
-    let wait = SKAction.wait(forDuration: 3)
+    let wait = SKAction.wait(forDuration: 1)
     let sequence = SKAction.sequence([spawn, wait])
     let repeatForever = SKAction.repeatForever(sequence)
     
@@ -205,5 +205,22 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   func restartGame() {
     let levelOne = GameManager.loadLevel(1)
     view?.presentScene(levelOne, transition: .doorsCloseHorizontal(withDuration: 2))
+  }
+  
+  func winner() {
+    removeAllActions()
+    view?.isPaused = true
+    
+    let gameOverLabel = SKLabelNode()
+    gameOverLabel.text = "You Win"
+    gameOverLabel.fontColor = .red
+    gameOverLabel.fontName = "Helvetica-bold"
+    gameOverLabel.fontSize = 40
+    
+    gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+    
+    addChild(gameOverLabel)
+    
+    restratGameLabel()
   }
 }
