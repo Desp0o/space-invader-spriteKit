@@ -13,9 +13,7 @@ struct ContentView: View {
   let height = UIScreen.main.bounds.height
   
   var scene: SKScene {
-    let scene = GameManager.loadLevel(1)
-    scene.size.width = width
-    scene.size.height = height
+      let scene = GameManager.loadLevel(2)
     scene.scaleMode = .fill
     
     return scene
@@ -236,7 +234,7 @@ struct PhysicsCategory {
   static let enemy: UInt32 = 2
   static let bullet: UInt32 = 4
   static let ship: UInt32 = 8
-  
+    static let boss : UInt32 = 16
 }
 
 class GameManager {
@@ -250,5 +248,53 @@ class GameManager {
 }
 
 final class MainScene2: BaseLevelScene {
-  
+    var bossHealth = 100
+    let boss = SKSpriteNode(imageNamed: "boss")
+    override func didMove(to view: SKView) {
+        super.didMove(to: view)
+        
+        setupBoss()
+        setupSpaceShip()
+    }
+    
+    func setupBoss() {
+        boss.position = CGPoint(x: size.width / 2, y: size.height - 120)
+        boss.size = CGSize(width: 100, height: 100)
+        if let texture = boss.texture {
+            boss.physicsBody = SKPhysicsBody(texture: texture, size: boss.size)
+        } else {
+            boss.physicsBody = SKPhysicsBody(circleOfRadius: 50)
+        }
+        
+        boss.physicsBody?.isDynamic = true
+        boss.physicsBody?.affectedByGravity = false
+        boss.physicsBody?.usesPreciseCollisionDetection = true
+        boss.physicsBody?.categoryBitMask = PhysicsCategory.boss
+        boss.physicsBody?.contactTestBitMask = PhysicsCategory.bullet
+        
+        
+        addChild(boss)
+    }
+    
+    override func didBegin(_ contact: SKPhysicsContact) {
+        let isBulletBoss =
+        (contact.bodyA.categoryBitMask == PhysicsCategory.bullet && contact.bodyB.categoryBitMask == PhysicsCategory.boss) ||
+        (contact.bodyA.categoryBitMask == PhysicsCategory.boss && contact.bodyB.categoryBitMask == PhysicsCategory.bullet)
+        
+        if isBulletBoss {
+            bossHealth -= 5
+            print("Boss Health: \(bossHealth)")
+            
+            if contact.bodyA.categoryBitMask == PhysicsCategory.bullet {
+                contact.bodyA.node?.removeFromParent()
+            } else if contact.bodyB.categoryBitMask == PhysicsCategory.bullet {
+                contact.bodyB.node?.removeFromParent()
+            }
+            
+            if bossHealth <= 0 {
+                boss.removeFromParent()
+            }
+        }
+    }
+
 }
