@@ -235,6 +235,7 @@ struct PhysicsCategory {
   static let bullet: UInt32 = 4
   static let ship: UInt32 = 8
   static let boss : UInt32 = 16
+  static let bossBullet: UInt32 = 32
 }
 
 class GameManager {
@@ -257,25 +258,6 @@ final class MainScene2: BaseLevelScene {
     setupSpaceShip()
   }
   
-  func setupBoss() {
-    boss.position = CGPoint(x: size.width / 2, y: size.height - 120)
-    boss.size = CGSize(width: 100, height: 100)
-    if let texture = boss.texture {
-      boss.physicsBody = SKPhysicsBody(texture: texture, size: boss.size)
-    } else {
-      boss.physicsBody = SKPhysicsBody(circleOfRadius: 50)
-    }
-    
-    boss.physicsBody?.isDynamic = true
-    boss.physicsBody?.affectedByGravity = false
-    boss.physicsBody?.usesPreciseCollisionDetection = true
-    boss.physicsBody?.categoryBitMask = PhysicsCategory.boss
-    boss.physicsBody?.contactTestBitMask = PhysicsCategory.bullet
-    
-    
-    addChild(boss)
-  }
-  
   override func didBegin(_ contact: SKPhysicsContact) {
     let isBulletBoss =
     (contact.bodyA.categoryBitMask == PhysicsCategory.bullet && contact.bodyB.categoryBitMask == PhysicsCategory.boss) ||
@@ -283,7 +265,6 @@ final class MainScene2: BaseLevelScene {
     
     if isBulletBoss {
       bossHealth -= 5
-      print("Boss Health: \(bossHealth)")
       
       if contact.bodyA.categoryBitMask == PhysicsCategory.bullet {
         contact.bodyA.node?.removeFromParent()
@@ -301,6 +282,81 @@ final class MainScene2: BaseLevelScene {
         boss.removeFromParent()
       }
     }
+    
+    let isBossBulletCollided =
+    (contact.bodyA.categoryBitMask == PhysicsCategory.bossBullet && contact.bodyB.categoryBitMask == PhysicsCategory.ship) ||
+    (contact.bodyA.categoryBitMask == PhysicsCategory.ship && contact.bodyB.categoryBitMask == PhysicsCategory.bossBullet)
+    
+    if isBossBulletCollided {
+      contact.bodyA.node?.removeFromParent()
+      contact.bodyB.node?.removeFromParent()
+      destroyedShip(location: spaceShip.position)
+      
+      scene?.isPaused = true
+    }
   }
   
+  func setupBoss() {
+    boss.position = CGPoint(x: size.width / 2, y: size.height - 120)
+    boss.size = CGSize(width: 100, height: 100)
+    if let texture = boss.texture {
+      boss.physicsBody = SKPhysicsBody(texture: texture, size: boss.size)
+    } else {
+      boss.physicsBody = SKPhysicsBody(circleOfRadius: 50)
+    }
+    
+    boss.physicsBody?.isDynamic = true
+    boss.physicsBody?.affectedByGravity = false
+    boss.physicsBody?.usesPreciseCollisionDetection = true
+    boss.physicsBody?.categoryBitMask = PhysicsCategory.boss
+    boss.physicsBody?.contactTestBitMask = PhysicsCategory.bullet
+    
+    bossMovement()
+    startBossShooting()
+    addChild(boss)
+  }
+  
+  func bossMovement() {
+    let moveRight = SKAction.move(to: CGPoint(x: size.width - 50, y: size.height - 120), duration: 2)
+    
+    let moveLeft = SKAction.move(to: CGPoint(x: 50, y: size.height - 120), duration: 2)
+    
+    let sequence = SKAction.sequence([moveRight, moveLeft])
+    let repeatForever = SKAction.repeatForever(sequence)
+    
+    boss.run(repeatForever)
+  }
+  
+  func bossBullets() {
+    let bulletOne = SKSpriteNode(imageNamed: "bollsBullet")
+    bulletOne.position = CGPoint(x: boss.position.x, y: boss.position.y - 50)
+    
+    if let texture = bulletOne.texture {
+      bulletOne.physicsBody = SKPhysicsBody(texture: texture, size: bulletOne.frame.size)
+    }
+    
+    bulletOne.physicsBody?.isDynamic = true
+    bulletOne.physicsBody?.affectedByGravity = false
+    bulletOne.physicsBody?.usesPreciseCollisionDetection = true
+    bulletOne.physicsBody?.categoryBitMask = PhysicsCategory.bossBullet
+    bulletOne.physicsBody?.contactTestBitMask = PhysicsCategory.ship
+    
+    let shoot = SKAction.move(by: CGVector(dx: 0, dy: -800), duration: 2)
+    let remove = SKAction.removeFromParent()
+    let sequence = SKAction.sequence([shoot, remove])
+    bulletOne.run(sequence)
+    
+    addChild(bulletOne)
+  }
+  
+  func startBossShooting() {
+    let shoot = SKAction.run { [weak self] in
+      self?.bossBullets()
+    }
+    let wait = SKAction.wait(forDuration: 1.5)
+    let sequence = SKAction.sequence([shoot, wait])
+    let repeatShoot = SKAction.repeatForever(sequence)
+    
+    boss.run(repeatShoot)
+  }
 }
