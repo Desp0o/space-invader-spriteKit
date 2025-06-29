@@ -21,6 +21,7 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   
   let scoreLabel = SKLabelNode()
   var score = 0
+  var isGameOver = false
   
   override func didMove(to view: SKView) {
     self.physicsWorld.contactDelegate = self
@@ -33,14 +34,15 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
     
     updateShipPosition(location: location)
     
-    setupRedBullet()
+    if !isGameOver {
+      setupRedBullet()
+    }
     
     if touchedNode.name == "restartGame" {
-      view?.isPaused = false
       restartGame()
     }
   }
-  
+    
   func setupHUD() {
     scoreLabel.text = "Score: \(score)"
     scoreLabel.fontColor = .yellow
@@ -100,6 +102,9 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   }
   
   func setupRedBullet() {
+    let shootSound = SKAction.playSoundFileNamed("sfx_laser1.wav", waitForCompletion: false)
+        run(shootSound)
+    
     let redBullet = SKSpriteNode(imageNamed: "laserRed01")
     redBullet.position = CGPoint(x: spaceShip.position.x, y: spaceShip.position.y + 60)
     redBullet.physicsBody = SKPhysicsBody(rectangleOf: redBullet.frame.size)
@@ -173,9 +178,8 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   }
   
   func gameOver() {
-    removeAllActions()
-    view?.isPaused = true
-    
+    isGameOver = true
+   
     let gameOverLabel = SKLabelNode()
     gameOverLabel.text = "Game Over"
     gameOverLabel.fontColor = .red
@@ -187,6 +191,10 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
     addChild(gameOverLabel)
     
     restratGameLabel()
+    removeAllActions()
+    
+    let sound = SKAction.playSoundFileNamed("sfx_lose.wav", waitForCompletion: false)
+    run(sound)
   }
   
   func restratGameLabel() {
@@ -208,8 +216,7 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   }
   
   func winner() {
-    removeAllActions()
-    view?.isPaused = true
+    isGameOver = true
     
     let gameOverLabel = SKLabelNode()
     gameOverLabel.text = "You Win"

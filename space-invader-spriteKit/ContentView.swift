@@ -13,7 +13,7 @@ struct ContentView: View {
   let height = UIScreen.main.bounds.height
   
   var scene: SKScene {
-    let scene = GameManager.loadLevel(2)
+    let scene = GameManager.loadLevel(1)
     scene.scaleMode = .fill
     
     return scene
@@ -62,6 +62,8 @@ final class MainScene2: BaseLevelScene {
       boss.run(flashAction)
       
       if bossHealth <= 0 {
+        let explosionSound = SKAction.playSoundFileNamed("explosion.wav", waitForCompletion: false)
+        run(explosionSound)
         boss.removeFromParent()
         winner()
       }
