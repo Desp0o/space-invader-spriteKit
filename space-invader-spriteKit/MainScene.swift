@@ -34,7 +34,7 @@ final class MainScene: BaseLevelScene {
       
       if score == 10 {
         let nextLevel = GameManager.loadLevel(2)
-        view?.presentScene(nextLevel, transition: .doorsCloseHorizontal(withDuration: 1))
+        view?.presentScene(nextLevel, transition: .crossFade(withDuration: 1))
       }
       
       return

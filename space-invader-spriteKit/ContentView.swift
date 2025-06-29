@@ -89,7 +89,7 @@ final class MainScene2: BaseLevelScene {
       boss.physicsBody = SKPhysicsBody(circleOfRadius: 50)
     }
     
-    boss.physicsBody?.isDynamic = true
+    boss.physicsBody?.isDynamic = false
     boss.physicsBody?.affectedByGravity = false
     boss.physicsBody?.usesPreciseCollisionDetection = true
     boss.physicsBody?.categoryBitMask = PhysicsCategory.boss
@@ -113,7 +113,7 @@ final class MainScene2: BaseLevelScene {
   
   func bossBullets() {
     let bulletOne = SKSpriteNode(imageNamed: "bollsBullet")
-    bulletOne.position = CGPoint(x: boss.position.x, y: boss.position.y - 50)
+    bulletOne.position = CGPoint(x: boss.position.x, y: boss.position.y - 70)
     
     if let texture = bulletOne.texture {
       bulletOne.physicsBody = SKPhysicsBody(texture: texture, size: bulletOne.frame.size)

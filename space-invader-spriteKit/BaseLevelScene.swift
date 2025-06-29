@@ -29,10 +29,16 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first else { return }
     let location = touch.location(in: self)
+    let touchedNode = atPoint(location)
     
     updateShipPosition(location: location)
     
     setupRedBullet()
+    
+    if touchedNode.name == "restartGame" {
+      view?.isPaused = false
+      restartGame()
+    }
   }
   
   func setupHUD() {
@@ -179,5 +185,25 @@ class BaseLevelScene: SKScene, SKPhysicsContactDelegate {
     gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
     
     addChild(gameOverLabel)
+    
+    restratGameLabel()
+  }
+  
+  func restratGameLabel() {
+    let restartGame = SKLabelNode()
+    restartGame.name = "restartGame"
+    restartGame.text = "Restart Game"
+    restartGame.fontColor = .green
+    restartGame.fontName = "Helvetica-bold"
+    restartGame.fontSize = 24
+    
+    restartGame.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
+    
+    addChild(restartGame)
+  }
+  
+  func restartGame() {
+    let levelOne = GameManager.loadLevel(1)
+    view?.presentScene(levelOne, transition: .doorsCloseHorizontal(withDuration: 2))
   }
 }
